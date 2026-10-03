@@ -8,7 +8,7 @@ directory per plugin under `plugins/`, installable individually.
 ### [agent-tab-name](plugins/agent-tab-name/)
 
 Names herdr tabs after a short project-feature slug built from the running
-agent's session topic - e.g. `7. Fix checkout redirect loop` becomes
+agent's session topic - e.g. a tab that would otherwise just say `1` becomes
 `webshop-fix-checkout-redirect`. Manual names are respected; writes are
 state-gated so labels only change when the topic actually changes.
 

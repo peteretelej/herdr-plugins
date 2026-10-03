@@ -9,9 +9,9 @@ are state-gated so labels only change when the topic actually changed.
 
 | Tab before | Tab after |
 |---|---|
-| `7. Fix checkout redirect loop` | `webshop-fix-checkout-redirect` |
-| `3. Review auth middleware` | `api-review-auth-middleware` |
-| `5. Add CSV export` | `docs-add-csv-export` |
+| `1` | `webshop-fix-checkout-redirect` |
+| `2` | `api-review-auth-middleware` |
+| `3` | `docs-add-csv-export` |
 
 The project part is the herdr workspace label (or a short form you configure);
 the feature part is the slugified session topic, capped to a few words so it
