@@ -1,0 +1,18 @@
+id = "peteretelej.broadcast"
+name = "Broadcast"
+version = "0.1.0"
+min_herdr_version = "0.9.3"
+description = "Send one prompt to N agents and collect the answers when they settle."
+platforms = ["linux", "macos"]
+
+[[build]]
+command = ["cargo", "build", "--release"]
+
+# Paths are relative to the plugin dir; cargo emits to the workspace root
+# target/, two levels up.
+# `run` stays a shell tool because plugin actions receive no arguments; the
+# action below shows the last run's summary.
+[[actions]]
+id = "last"
+title = "Show last broadcast summary"
+command = ["../../target/release/broadcast", "last"]

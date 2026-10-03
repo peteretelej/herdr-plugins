@@ -1,0 +1,16 @@
+[package]
+name = "peteretelej-broadcast"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Send one prompt to N herdr agents and collect the answers when they settle"
+
+[[bin]]
+name = "broadcast"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true

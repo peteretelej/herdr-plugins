@@ -19,6 +19,21 @@ herdr plugin install peteretelej/herdr-plugins/plugins/agent-tab-name
 Requires herdr >= 0.9.3 and a recognized agent whose terminal title carries a
 topic (OpenCode does).
 
+### [broadcast](plugins/broadcast/)
+
+Sends one prompt to N running agents and collects the answers when they
+settle - tmux `synchronize-panes` for agents. Per-agent outcomes (completed,
+blocked, stalled, timeout, failed, skipped) so one stuck pane never blocks
+the fleet, capped answer collection, named squads, and per-run markdown
+summaries.
+
+```bash
+herdr plugin install peteretelej/herdr-plugins/plugins/broadcast
+```
+
+Requires herdr >= 0.9.3. `run` is a shell tool (invoke the built binary from
+a shell pane); the `last` action re-prints the latest summary.
+
 ## Development
 
 The plugins share a cargo workspace:
