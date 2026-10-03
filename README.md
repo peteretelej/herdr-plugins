@@ -19,6 +19,19 @@ herdr plugin install peteretelej/herdr-plugins/plugins/agent-tab-name
 Requires herdr >= 0.9.3 and a recognized agent whose terminal title carries a
 topic (OpenCode does).
 
+### [notify](plugins/notify/)
+
+Sends a Telegram message when an agent turns `blocked` or `done` - with
+quiet hours, per-workspace filters, a mute toggle, and a detached delivery
+process so the event hook never blocks on the network. Completions on
+watched panes (reported as `idle`) are recognized too.
+
+```bash
+herdr plugin install peteretelej/herdr-plugins/plugins/notify
+```
+
+Requires herdr >= 0.9.3.
+
 ## Tab-bar status widgets (scripts)
 
 Two shell scripts that turn herdr's built-in `ui.tab_bar_right` status area
@@ -69,7 +82,7 @@ The plugins share a cargo workspace:
 
 ```bash
 cargo build --release          # builds all plugins to ./target/release/
-herdr plugin link $PWD/plugins/tab-topic
+herdr plugin link $PWD/plugins/agent-tab-name
 herdr server reload-config
 ```
 

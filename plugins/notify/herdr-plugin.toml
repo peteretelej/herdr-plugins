@@ -1,0 +1,32 @@
+id = "peteretelej.notify"
+name = "Agent Notify"
+version = "0.1.0"
+min_herdr_version = "0.9.3"
+description = "Telegram notifications when agents turn blocked or done, with quiet hours and per-workspace filters."
+platforms = ["linux", "macos"]
+
+[[build]]
+command = ["cargo", "build", "--release"]
+
+# One event, one entrypoint. The hook never blocks on network: delivery
+# happens in a detached `send` process so slow Telegram calls cannot stall
+# event dispatch (slow hooks trigger events_lost on herdr 0.9.2+).
+[[events]]
+on = "pane.agent_status_changed"
+command = ["../../target/release/notify", "event"]
+
+# Manual trigger, e.g. `herdr plugin action invoke peteretelej.notify.test`
+[[actions]]
+id = "test"
+title = "Send a test notification"
+command = ["../../target/release/notify", "test"]
+
+[[actions]]
+id = "mute"
+title = "Mute notifications"
+command = ["../../target/release/notify", "mute", "on"]
+
+[[actions]]
+id = "resume"
+title = "Resume notifications"
+command = ["../../target/release/notify", "mute", "off"]

@@ -1,0 +1,17 @@
+[package]
+name = "peteretelej-notify"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Telegram notifications when herdr agents turn blocked or done"
+
+[[bin]]
+name = "notify"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ureq = { version = "2", features = ["json"] }
