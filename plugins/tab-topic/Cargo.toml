@@ -1,0 +1,16 @@
+[package]
+name = "peteretelej-tab-topic"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Name herdr tabs and panes after the agent's live topic"
+
+[[bin]]
+name = "tab-topic"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
