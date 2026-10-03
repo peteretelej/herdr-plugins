@@ -26,8 +26,13 @@ into a live fleet dashboard - no plugin install, just the scripts and config
 entries. A tab row that only showed a clock becomes:
 
 ```text
-1:webshop-fix-checkout-redirect   10:04 · AI: 6 idle, 2 active, 2 blocked, 1 done · AAPL 333.69
+1:webshop-fix-checkout-redirect   21:47 · ×2 ✓1 ◐7 ○3 · AAPL 333.69
 ```
+
+The fleet counts reuse herdr's own `status_indicators = "symbols"` glyphs in
+attention order - `×` blocked, `✓` done, `◐` working, `○` idle - so the strip
+needs no legend and reads the same as the tabs. Set `[ui]
+status_indicators = "symbols"` to make tabs match.
 
 ### Setup
 
@@ -36,16 +41,18 @@ you keep this repo):
 
 ```toml
 [ui]
+status_indicators = "symbols"
 tab_bar_right = [
-  { type = "datetime", format = "%a %H:%M" },
+  { type = "datetime", format = "%H:%M" },
   { type = "command", command = "~/code/peteretelej/herdr-plugins/scripts/fleet-status", interval_seconds = 10, timeout_seconds = 10 },
   { type = "command", command = "~/code/peteretelej/herdr-plugins/scripts/ticker AAPL MSFT", interval_seconds = 60, timeout_seconds = 20 },
 ]
 tab_bar_right_separator = " · "
 ```
 
-- `scripts/fleet-status` counts agents by state via `herdr agent list`
-  (`working` is shown as `active`; zero-count states are omitted).
+- `scripts/fleet-status` counts agents by state via `herdr agent list` and
+  prints herdr's symbol glyphs in attention order (`×` blocked, `✓` done,
+  `◐` working, `○` idle; zero-count states omitted).
 - `scripts/ticker` shows stock prices. Keyless by default (Yahoo's public
   chart endpoint), or export `FINNHUB_API_KEY` to use the official Finnhub
   quote API instead. Symbols come from the command line and default to
