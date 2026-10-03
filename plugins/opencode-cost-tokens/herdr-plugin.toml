@@ -1,8 +1,8 @@
 id = "peteretelej.opencode-cost-tokens"
 name = "OpenCode Cost Tokens"
-version = "0.1.0"
+version = "0.1.1"
 min_herdr_version = "0.9.3"
-description = "Live OpenCode session telemetry per agent pane: context %, last-turn tok/s, session cost, output tokens, and model in the sidebar."
+description = "Minimal live OpenCode telemetry per agent pane: context %, tok/s, and session cost when it exists."
 platforms = ["linux", "macos"]
 
 [[build]]

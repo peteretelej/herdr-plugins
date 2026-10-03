@@ -1,8 +1,9 @@
 # peteretelej.opencode-cost-tokens
 
 Live [OpenCode](https://opencode.ai) session telemetry next to every agent pane
-in herdr's sidebar: context-window usage, effective generation rate, session
-cost, output tokens, and the model - per pane, refreshed while the agent works.
+in herdr's sidebar: context-window usage, effective generation rate, and
+session cost when it exists - three numbers, per pane, refreshed while the
+agent works.
 
 ## Before / after
 
@@ -16,11 +17,13 @@ With the plugin's tokens added to your Agent rows:
 
 ```text
 ● webshop | fix-checkout-redirect
-  glm-5.3-flash  cx 13%  10 t/s  $0.00  27.7k out
+  cx 13%  10t/s  $0.07
 ```
 
 Context turns amber past 60% and red past 85% (severity variants you style in
-config), so you see a compaction coming before it interrupts the agent.
+config), so you see a compaction coming before it interrupts the agent. Cost
+appears only when the session has real cost - subscription-billed sessions
+stay clean.
 
 Part of [peteretelej/herdr-plugins](https://github.com/peteretelej/herdr-plugins).
 
@@ -31,10 +34,8 @@ Part of [peteretelej/herdr-plugins](https://github.com/peteretelej/herdr-plugins
 | `$oct_cx` | Context window used (percentage; absolute tokens when the model's limit is unknown). Warn/hot variants below. | `13%` / `137.1k` |
 | `$oct_cx_warn` | Same value, reported instead of `$oct_cx` at 60-84% used. | `64%` |
 | `$oct_cx_hot` | Same value, reported at 85%+ used. | `91%` |
-| `$oct_tps` | Effective rate of the last completed turn: output tokens over the turn's wall time. | `10 t/s` |
-| `$oct_cost` | Accumulated session cost in dollars. | `$1.23` |
-| `$oct_out` | Session output tokens. | `52.3k` |
-| `$oct_model` | Model id with provider path stripped. | `glm-5.3-flash` |
+| `$oct_tps` | Effective rate of the last completed turn: output tokens over the turn's wall time. | `10t/s` |
+| `$oct_cost` | Accumulated session cost, trailing zeros trimmed. Reported only when cost exists ($0.00 subscription usage is omitted). | `$2.3` |
 
 Exactly one context variant is reported at a time; unreported tokens vanish
 from the row, which is what makes the severity swap work.
@@ -48,13 +49,11 @@ Add the tokens to `ui.sidebar.agents.rows` in your herdr `config.toml`:
 rows = [
   ["state_icon", "workspace", "tab"],
   [
-    { token = "$oct_model", dim = true },
     { token = "$oct_cx" },
     { token = "$oct_cx_warn", fg = "#fc0" },
     { token = "$oct_cx_hot", fg = "#f55", bold = true },
     { token = "$oct_tps", dim = true },
     { token = "$oct_cost" },
-    { token = "$oct_out", dim = true },
   ],
 ]
 ```

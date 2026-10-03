@@ -1,6 +1,6 @@
 [package]
 name = "peteretelej-opencode-cost-tokens"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 description = "Live OpenCode session telemetry per herdr agent pane: context %, last-turn tok/s, session cost, output tokens, and model"

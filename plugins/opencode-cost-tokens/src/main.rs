@@ -18,7 +18,7 @@ use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 mod db;
-use db::{load_models, session_model_short, OpenCodeDb};
+use db::{load_models, OpenCodeDb};
 
 const SOURCE_ID: &str = "peteretelej.opencode-cost-tokens";
 const TTL_MS: &str = "86400000";
@@ -36,8 +36,6 @@ const TOK_CONTEXT_WARN: &str = "oct_cx_warn";
 const TOK_CONTEXT_HOT: &str = "oct_cx_hot";
 const TOK_RATE: &str = "oct_tps";
 const TOK_COST: &str = "oct_cost";
-const TOK_OUT: &str = "oct_out";
-const TOK_MODEL: &str = "oct_model";
 
 type Tokens = BTreeMap<String, String>;
 type State = BTreeMap<String, Tokens>;
@@ -120,9 +118,16 @@ fn compact(n: i64) -> String {
     }
 }
 
-fn short_model(model: &str) -> String {
-    let tail = model.rsplit('/').next().unwrap_or(model);
-    tail.chars().take(24).collect()
+/// Dollars with trailing zeros trimmed: $2.30 -> $2.3, $1.00 -> $1.
+fn compact_dollars(cost: f64) -> String {
+    let mut s = format!("${cost:.2}");
+    while s.ends_with('0') {
+        s.pop();
+    }
+    if s.ends_with('.') {
+        s.pop();
+    }
+    s
 }
 
 /// Sidebar token name for a context-used percentage. Severity buckets:
@@ -171,19 +176,12 @@ fn session_tokens(
     };
 
     if let Some(rate) = sample.tokens_per_second() {
-        tokens.insert(TOK_RATE.into(), format!("{rate} t/s"));
+        tokens.insert(TOK_RATE.into(), format!("{rate}t/s"));
     }
-    tokens.insert(TOK_COST.into(), format!("${:.2}", totals.cost));
-    if totals.output > 0 {
-        tokens.insert(TOK_OUT.into(), compact(totals.output));
-    }
-    let model = sample
-        .model_id
-        .as_deref()
-        .map(String::from)
-        .or_else(|| session_model_short(totals.model_raw.as_deref()));
-    if let Some(model) = model {
-        tokens.insert(TOK_MODEL.into(), short_model(&model));
+    // Cost only when it exists: OpenCode records $0 for subscription-billed
+    // providers, and a permanent $0.00 in every row is noise.
+    if totals.cost >= 0.005 {
+        tokens.insert(TOK_COST.into(), compact_dollars(totals.cost));
     }
     Ok(tokens)
 }
@@ -245,11 +243,12 @@ fn refresh_pass(
         let Ok(tokens) = session_tokens(db, &models, session) else { continue };
         let empty = Tokens::new();
         let prev = state.get(&pane.pane_id).unwrap_or(&empty);
-        let (puts, clears) = if force {
-            (tokens.iter().map(|(k, v)| (k.clone(), v.clone())).collect(), Vec::new())
-        } else {
-            diff(prev, &tokens)
-        };
+        let (mut puts, clears) = diff(prev, &tokens);
+        if force {
+            // Republish every desired token, but keep the diff's clears so
+            // tokens dropped between versions (or states) still get removed.
+            puts = tokens.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+        }
         if puts.is_empty() && clears.is_empty() {
             continue;
         }
@@ -503,16 +502,18 @@ mod tests {
     }
 
     #[test]
+    fn compact_dollars_trims_zeros() {
+        assert_eq!(compact_dollars(2.30), "$2.3");
+        assert_eq!(compact_dollars(1.0), "$1");
+        assert_eq!(compact_dollars(0.07), "$0.07");
+        assert_eq!(compact_dollars(12.5), "$12.5");
+    }
+
+    #[test]
     fn compact_formats() {
         assert_eq!(compact(42), "42");
         assert_eq!(compact(45_300), "45.3k");
         assert_eq!(compact(1_234_000), "1.2M");
         assert_eq!(compact(-5), "0");
-    }
-
-    #[test]
-    fn short_model_strips_provider_paths() {
-        assert_eq!(short_model("accounts/fireworks/models/glm-5p3-flash"), "glm-5p3-flash");
-        assert_eq!(short_model("glm-5.3-flash"), "glm-5.3-flash");
     }
 }

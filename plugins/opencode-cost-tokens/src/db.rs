@@ -13,11 +13,10 @@ pub struct OpenCodeDb {
 }
 
 /// Session-level totals from the `session_v2` row.
+/// `Ok(None)` = session unknown; `Err` = transient read failure, which
+/// callers must treat as "skip this pane", never as "clear its tokens".
 pub struct SessionTotals {
     pub cost: f64,
-    pub output: i64,
-    /// Raw `model` column (a JSON object in current builds; may be a plain id).
-    pub model_raw: Option<String>,
 }
 
 /// One completed assistant message, the unit for context % and tok/s.
@@ -78,15 +77,9 @@ impl OpenCodeDb {
     /// callers must treat as "skip this pane", never as "clear its tokens".
     pub fn session_totals(&self, session_id: &str) -> rusqlite::Result<Option<SessionTotals>> {
         match self.conn.query_row(
-            "SELECT cost, tokens_output, model FROM session_v2 WHERE id = ?1",
+            "SELECT cost FROM session_v2 WHERE id = ?1",
             [session_id],
-            |row| {
-                Ok(SessionTotals {
-                    cost: row.get(0)?,
-                    output: row.get(1)?,
-                    model_raw: row.get(2)?,
-                })
-            },
+            |row| Ok(SessionTotals { cost: row.get(0)? }),
         ) {
             Ok(totals) => Ok(Some(totals)),
             Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
@@ -147,16 +140,6 @@ fn parse_sample(raw: &str) -> Option<AssistantSample> {
             .and_then(Value::as_str)
             .map(String::from),
     })
-}
-
-/// Short model name from the raw session `model` column: the JSON `id` when
-/// it parses as an object, otherwise the string itself.
-pub fn session_model_short(model_raw: Option<&str>) -> Option<String> {
-    let raw = model_raw?;
-    if let Ok(v) = serde_json::from_str::<Value>(raw) {
-        return v.get("id").and_then(Value::as_str).map(String::from);
-    }
-    Some(raw.to_string())
 }
 
 /// Load OpenCode's cached model catalog once per pass; None is fine and just
@@ -222,15 +205,6 @@ mod tests {
         assert_eq!(s.tokens_per_second(), None);
     }
 
-    #[test]
-    fn session_model_json_takes_id_field() {
-        assert_eq!(
-            session_model_short(Some(r#"{"id":"glm-5.3-flash","providerID":"zai-coding-plan"}"#)),
-            Some("glm-5.3-flash".into())
-        );
-        assert_eq!(session_model_short(Some("plain-id")), Some("plain-id".into()));
-        assert_eq!(session_model_short(None), None);
-    }
 
     #[test]
     fn context_limit_walks_the_catalog() {
