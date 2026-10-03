@@ -1,5 +1,43 @@
 # herdr-plugins
 
-Peter's suite of [herdr](https://github.com/herdrdev/herdr) plugins. One directory per plugin under `plugins/`.
+Peter's suite of [herdr](https://github.com/herdrdev/herdr) plugins - one
+directory per plugin under `plugins/`, installable individually.
 
-Status: ideation phase - see research-lab `projects/peteretelej/herdr-plugins/` for planning.
+## Plugins
+
+### [tab-topic](plugins/tab-topic/)
+
+Names herdr tabs after the live topic of the agent running inside them - the
+same session title OpenCode already reports via its terminal title. No more
+tabs named `1`, `2`, `3`. Manual names are respected; writes are state-gated so
+labels only change when the topic actually changes.
+
+```bash
+herdr plugin install peteretelej/herdr-plugins/plugins/tab-topic
+```
+
+Requires herdr >= 0.9.3 and a recognized agent whose terminal title carries a
+topic (OpenCode does).
+
+## Development
+
+The plugins share a cargo workspace:
+
+```bash
+cargo build --release          # builds all plugins to ./target/release/
+herdr plugin link $PWD/plugins/tab-topic
+herdr server reload-config
+```
+
+Event hooks and actions in each `herdr-plugin.toml` reference the built binary
+relative to the plugin directory.
+
+## Suite principles
+
+- Track current stable herdr; no legacy-version support
+- Idempotent reconciles, state-file gating, manual names always respected
+- Per-plugin MIT license
+
+## License
+
+MIT - see [LICENSE](LICENSE).
