@@ -19,6 +19,19 @@ herdr plugin install peteretelej/herdr-plugins/plugins/agent-tab-name
 Requires herdr >= 0.9.3 and a recognized agent whose terminal title carries a
 topic (OpenCode does).
 
+### [opencode-cost-tokens](plugins/opencode-cost-tokens/)
+
+Live OpenCode session telemetry next to every agent pane in herdr's sidebar:
+context-window usage (amber past 60%, red past 85%), last-turn generation
+rate, session cost, output tokens, and the model. Numbers only; session
+titles and content are never read or rendered.
+
+```bash
+herdr plugin install peteretelej/herdr-plugins/plugins/opencode-cost-tokens
+```
+
+Requires herdr >= 0.9.3, OpenCode >= 2.0.22, and herdr's OpenCode integration.
+
 ## Tab-bar status widgets (scripts)
 
 Two shell scripts that turn herdr's built-in `ui.tab_bar_right` status area
