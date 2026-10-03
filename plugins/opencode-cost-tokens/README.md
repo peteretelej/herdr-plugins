@@ -13,17 +13,20 @@ A sidebar Agent row before:
 ● webshop | fix-checkout-redirect
 ```
 
-With the plugin's tokens added to your Agent rows:
+With the plugin's tokens added to your Agent rows, the tokens take a line of
+their own - here replacing the default agent/title line (the tab name already
+carries the topic):
 
 ```text
-● webshop | fix-checkout-redirect
+● webshop | webshop-fix-checkout-redirect
   cx 13%  10t/s  $0.07
 ```
 
 Context turns amber past 60% and red past 85% (severity variants you style in
 config), so you see a compaction coming before it interrupts the agent. Cost
 appears only when the session has real cost - subscription-billed sessions
-stay clean.
+stay clean. Panes without reported tokens drop the row entirely, so
+non-OpenCode panes stay one line.
 
 Part of [peteretelej/herdr-plugins](https://github.com/peteretelej/herdr-plugins).
 
@@ -42,7 +45,9 @@ from the row, which is what makes the severity swap work.
 
 ## Sidebar setup
 
-Add the tokens to `ui.sidebar.agents.rows` in your herdr `config.toml`:
+Add the tokens as a row in `ui.sidebar.agents.rows` in your herdr
+`config.toml` - here replacing the default `["agent", "terminal_title_stripped"]`
+row so the list stays two lines per agent:
 
 ```toml
 [ui.sidebar.agents]
