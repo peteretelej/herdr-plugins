@@ -14,12 +14,12 @@ A sidebar Agent row before:
 ```
 
 With the plugin's tokens added to your Agent rows, the tokens take a line of
-their own - here replacing the default agent/title line (the tab name already
-carries the topic):
+their own - here replacing the default title line (the tab name already
+carries the topic), with the agent name kept as a prefix:
 
 ```text
 ● webshop | webshop-fix-checkout-redirect
-  cx 13%  10t/s  $0.07
+  OpenCode  cx 13%  10t/s  $0.07
 ```
 
 Context turns amber past 60% and red past 85% (severity variants you style in
@@ -54,6 +54,7 @@ row so the list stays two lines per agent:
 rows = [
   ["state_icon", "workspace", "tab"],
   [
+    { token = "agent" },
     { token = "$oct_cx" },
     { token = "$oct_cx_warn", fg = "#fc0" },
     { token = "$oct_cx_hot", fg = "#f55", bold = true },
@@ -62,6 +63,9 @@ rows = [
   ],
 ]
 ```
+
+The `agent` token renders the agent name (e.g. `OpenCode`) ahead of the
+numbers; drop it for numbers-only rows.
 
 ## How it works
 
