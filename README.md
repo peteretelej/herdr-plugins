@@ -23,8 +23,8 @@ topic (OpenCode does).
 
 Live OpenCode session telemetry next to every agent pane in herdr's sidebar:
 context-window usage (amber past 60%, red past 85%), last-turn generation
-rate, session cost, output tokens, and the model. Numbers only; session
-titles and content are never read or rendered.
+rate, and session cost when it exists. Three numbers; session titles and
+content are never read or rendered.
 
 ```bash
 herdr plugin install peteretelej/herdr-plugins/plugins/opencode-cost-tokens
