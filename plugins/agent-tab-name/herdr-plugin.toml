@@ -1,0 +1,37 @@
+id = "peteretelej.agent-tab-name"
+name = "Agent Tab Name"
+version = "0.1.0"
+min_herdr_version = "0.9.3"
+description = "Name tabs and panes after a short project-feature slug from the OpenCode session topic. Manual names are respected."
+platforms = ["linux", "macos"]
+
+[[build]]
+command = ["cargo", "build", "--release"]
+
+# Every entry runs the same idempotent reconcile; the event name is ignored.
+# Deliberately NOT subscribed to pane.updated / *.renamed - our own renames
+# would re-trigger us.
+# Paths are relative to the plugin dir; cargo emits to the workspace root
+# target/, two levels up.
+[[events]]
+on = "pane.agent_status_changed"
+command = ["../../target/release/agent-tab-name", "run"]
+
+[[events]]
+on = "pane.agent_detected"
+command = ["../../target/release/agent-tab-name", "run"]
+
+[[events]]
+on = "workspace.focused"
+command = ["../../target/release/agent-tab-name", "run"]
+
+# Manual trigger, e.g. `herdr plugin action invoke peteretelej.agent-tab-name.sync`
+[[actions]]
+id = "sync"
+title = "Reconcile tab topics now"
+command = ["../../target/release/agent-tab-name", "sync"]
+
+[[actions]]
+id = "release"
+title = "Stop managing labels and forget state"
+command = ["../../target/release/agent-tab-name", "release", "--clear"]
