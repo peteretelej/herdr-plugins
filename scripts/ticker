@@ -1,0 +1,41 @@
+#!/bin/sh
+# Stock ticker for a herdr tab-bar command entry: prints one line such as
+# "AAPL 333.69 | MSFT 512.10". Prints nothing when no symbol resolves so
+# herdr clears the entry instead of showing stale prices.
+#
+# Usage: ticker [SYMBOL...]   (default: AAPL)
+#
+# Keyless by default via Yahoo's public chart endpoint. Set FINNHUB_API_KEY
+# to use the official Finnhub quote API instead (free tier, 60 req/min).
+# Requires: curl, jq.
+
+set -eu
+set -f
+
+yahoo_price() {
+  curl -sf --max-time 5 "https://query1.finance.yahoo.com/v8/finance/chart/$1" \
+    -H 'User-Agent: herdr-tabbar-ticker/0.1' |
+    jq -r '.chart.result[0].meta.regularMarketPrice | select(. != null)'
+}
+
+finnhub_price() {
+  curl -sf --max-time 5 "https://finnhub.io/api/v1/quote?symbol=$1&token=$FINNHUB_API_KEY" |
+    jq -r '.c | select(. != null and . != 0)'
+}
+
+if [ -n "${FINNHUB_API_KEY:-}" ]; then
+  price_fn=finnhub_price
+else
+  price_fn=yahoo_price
+fi
+
+out=""
+for sym in ${*:-AAPL}; do
+  if price=$("$price_fn" "$sym") && [ -n "$price" ]; then
+    out="${out:+$out | }$sym $price"
+  fi
+done
+
+if [ -n "$out" ]; then
+  printf '%s\n' "$out"
+fi

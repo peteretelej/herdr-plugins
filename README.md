@@ -19,6 +19,43 @@ herdr plugin install peteretelej/herdr-plugins/plugins/agent-tab-name
 Requires herdr >= 0.9.3 and a recognized agent whose terminal title carries a
 topic (OpenCode does).
 
+## Tab-bar status widgets (scripts)
+
+Two shell scripts that turn herdr's built-in `ui.tab_bar_right` status area
+into a live fleet dashboard - no plugin install, just the scripts and config
+entries. A tab row that only showed a clock becomes:
+
+```text
+1:webshop-fix-checkout-redirect   10:04 · AI: 6 idle, 2 active, 2 blocked, 1 done · AAPL 333.69
+```
+
+### Setup
+
+Reference the scripts from your herdr `config.toml` (adjust the path to where
+you keep this repo):
+
+```toml
+[ui]
+tab_bar_right = [
+  { type = "datetime", format = "%a %H:%M" },
+  { type = "command", command = "~/code/peteretelej/herdr-plugins/scripts/fleet-status", interval_seconds = 10, timeout_seconds = 10 },
+  { type = "command", command = "~/code/peteretelej/herdr-plugins/scripts/ticker AAPL MSFT", interval_seconds = 60, timeout_seconds = 20 },
+]
+tab_bar_right_separator = " · "
+```
+
+- `scripts/fleet-status` counts agents by state via `herdr agent list`
+  (`working` is shown as `active`; zero-count states are omitted).
+- `scripts/ticker` shows stock prices. Keyless by default (Yahoo's public
+  chart endpoint), or export `FINNHUB_API_KEY` to use the official Finnhub
+  quote API instead. Symbols come from the command line and default to
+  `AAPL`.
+
+Both scripts print nothing on failure, and herdr clears a command entry whose
+output is empty - so the status area never shows stale counts or prices.
+Entries resolve on the herdr server, so the values follow the server when you
+attach with `herdr --remote`. Requires `jq` (and `curl` for the ticker).
+
 ## Development
 
 The plugins share a cargo workspace:

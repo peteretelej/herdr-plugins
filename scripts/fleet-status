@@ -1,0 +1,17 @@
+#!/bin/sh
+# Fleet counts for a herdr tab-bar command entry: prints one line such as
+# "AI: 6 idle, 2 active, 2 blocked, 1 done". Prints nothing on failure or
+# with no agents so herdr clears the entry instead of showing stale counts.
+# Requires: herdr, jq.
+
+set -eu
+
+herdr agent list 2>/dev/null | jq -r '
+  .result.agents
+  | select(length > 0)
+  | group_by(.agent_status)
+  | map({state: .[0].agent_status, count: length})
+  | map(.state |= (if . == "working" then "active" else . end))
+  | sort_by({idle: 0, active: 1, blocked: 2, done: 3}[.state] // 9)
+  | "AI: " + (map("\(.count) \(.state)") | join(", "))
+'
