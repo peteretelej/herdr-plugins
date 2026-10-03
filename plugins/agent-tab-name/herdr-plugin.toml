@@ -10,15 +10,33 @@ command = ["cargo", "build", "--release"]
 
 # Every entry runs the same idempotent reconcile; the event name is ignored.
 # Deliberately NOT subscribed to pane.updated / *.renamed - our own renames
-# would re-trigger us.
+# would re-trigger us. Focus events cover herdr's lack of a title-change
+# event: titles can change mid-work with no status transition, so every
+# interaction re-syncs. [[startup]] adopts settled agents after install and
+# session restore.
 # Paths are relative to the plugin dir; cargo emits to the workspace root
 # target/, two levels up.
+[[startup]]
+command = ["../../target/release/agent-tab-name", "sync"]
+
 [[events]]
 on = "pane.agent_status_changed"
 command = ["../../target/release/agent-tab-name", "run"]
 
 [[events]]
 on = "pane.agent_detected"
+command = ["../../target/release/agent-tab-name", "run"]
+
+[[events]]
+on = "pane.created"
+command = ["../../target/release/agent-tab-name", "run"]
+
+[[events]]
+on = "tab.focused"
+command = ["../../target/release/agent-tab-name", "run"]
+
+[[events]]
+on = "pane.focused"
 command = ["../../target/release/agent-tab-name", "run"]
 
 [[events]]
