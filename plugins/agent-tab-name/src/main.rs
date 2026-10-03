@@ -278,18 +278,25 @@ fn reconcile(rename_panes: bool, cfg: &Config) -> Result<()> {
         .filter_map(|w| Some((w["workspace_id"].as_str()?, w["label"].as_str()?)))
         .collect();
 
-    // tab_id -> (switch number, current label, workspace_id)
+    // tab_id -> (switch position, current label, workspace_id). The default
+    // tab label is the 1-based switch position within the workspace (compact
+    // as tabs open/close), NOT the persistent number - positions must be
+    // computed from list order.
     let mut tab_info: BTreeMap<&str, (String, Option<&str>, &str)> = BTreeMap::new();
+    let mut switch_counter: BTreeMap<&str, usize> = BTreeMap::new();
     for tab in tab_rows {
         let Some(id) = tab["tab_id"].as_str() else {
             continue;
         };
+        let ws = tab["workspace_id"].as_str().unwrap_or_default();
+        let pos = switch_counter.entry(ws).or_insert(0);
+        *pos += 1;
         tab_info.insert(
             id,
             (
-                tab["number"].as_u64().map(|n| n.to_string()).unwrap_or_default(),
+                pos.to_string(),
                 tab["label"].as_str(),
-                tab["workspace_id"].as_str().unwrap_or_default(),
+                ws,
             ),
         );
     }
