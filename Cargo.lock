@@ -452,6 +452,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "peteretelej-herdr-fleet"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "peteretelej-notify"
 version = "0.1.0"
 dependencies = [

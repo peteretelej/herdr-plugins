@@ -45,6 +45,21 @@ herdr plugin install peteretelej/herdr-plugins/plugins/opencode-cost-tokens
 
 Requires herdr >= 0.9.3, OpenCode >= 2.0.22, and herdr's OpenCode integration.
 
+### [herdr-fleet](plugins/herdr-fleet/)
+
+Democratized subagents: any lead agent dispatches kind-agnostic consultation
+workers as real herdr panes and collects their answers. One command spawns a
+worker fleet into a scratch workspace, delivers a self-contained brief, and
+folds the worker-written answers into one summary - visible, persistent, and
+managed by herdr rather than locked inside any single AI's runtime.
+
+```bash
+herdr plugin install peteretelej/herdr-plugins/plugins/herdr-fleet
+```
+
+Requires herdr >= 0.9.3. `dispatch` is a shell tool (invoke the built binary
+from a shell pane); the `status`/`last` actions re-print run state.
+
 ## Tab-bar status widgets (scripts)
 
 Two shell scripts that turn herdr's built-in `ui.tab_bar_right` status area
@@ -101,15 +116,3 @@ herdr server reload-config
 
 Event hooks and actions in each `herdr-plugin.toml` reference the built binary
 relative to the plugin directory.
-
-In case of compatibility issues with older versions (eg of herdr or opencode), prefer supporting the newer stable versions.
-
-## Suite principles
-
-- Track current stable herdr; no legacy-version support
-- Idempotent reconciles, state-file gating, manual names always respected
-- Per-plugin MIT license
-
-## License
-
-MIT - see [LICENSE](LICENSE).
