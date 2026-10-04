@@ -1,0 +1,23 @@
+id = "peteretelej.herdr-fleet"
+name = "Herdr Fleet"
+version = "0.1.0"
+min_herdr_version = "0.9.3"
+description = "Democratized subagents: dispatch kind-agnostic consultation workers as herdr panes and collect their answers."
+platforms = ["linux", "macos"]
+
+[[build]]
+command = ["cargo", "build", "--release"]
+
+# Paths are relative to the plugin dir; cargo emits to the workspace root
+# target/, two levels up.
+# Actions receive no user arguments, so dispatch stays a shell tool (and the
+# lead-adapters' CLI); the actions re-print run state.
+[[actions]]
+id = "status"
+title = "Show latest fleet run status"
+command = ["../../target/release/herdr-fleet", "status"]
+
+[[actions]]
+id = "last"
+title = "Show last fleet run summary"
+command = ["../../target/release/herdr-fleet", "last"]

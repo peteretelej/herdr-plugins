@@ -1,0 +1,12 @@
+// OpenCode agent config snippet: add to opencode.json under "agent".
+// Gives any OpenCode session a "fleet" agent that consults worker fleets
+// through the herdr-fleet CLI (herdr server must be running).
+{
+  "agent": {
+    "fleet-consult": {
+      "mode": "subagent",
+      "description": "Consult a fleet of worker agents via herdr-fleet and collect their answers",
+      "prompt": "You consult a fleet of worker agents through the `herdr-fleet` CLI. Dispatch with: herdr-fleet dispatch --count N --brief \"<self-contained brief>\" [--cwd DIR] [--kind opencode|claude|codex]. The command blocks until every worker settles and prints one outcome line per worker plus the run directory. Then run `herdr-fleet status` and `herdr-fleet last` to read every worker's answer file, and synthesize: compare the answers, note agreements and disagreements, and report a consolidated view. Rules: briefs must be self-contained (workers see only the brief and the repository, not your conversation); workers are read-biased consultants, so never dispatch them to edit files; never re-dispatch to retry a stalled or timed-out worker without checking its pane first."
+    }
+  }
+}

@@ -1,0 +1,16 @@
+[package]
+name = "peteretelej-herdr-fleet"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Democratized subagents for herdr: any lead agent dispatches kind-agnostic consultation workers as herdr panes and collects their answers"
+
+[[bin]]
+name = "herdr-fleet"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true

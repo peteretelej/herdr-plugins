@@ -145,7 +145,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "peteretelej-broadcast"
+name = "peteretelej-herdr-fleet"
 version = "0.1.0"
 dependencies = [
  "anyhow",

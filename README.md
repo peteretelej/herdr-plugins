@@ -19,20 +19,20 @@ herdr plugin install peteretelej/herdr-plugins/plugins/agent-tab-name
 Requires herdr >= 0.9.3 and a recognized agent whose terminal title carries a
 topic (OpenCode does).
 
-### [broadcast](plugins/broadcast/)
+### [herdr-fleet](plugins/herdr-fleet/)
 
-Sends one prompt to N running agents and collects the answers when they
-settle - tmux `synchronize-panes` for agents. Per-agent outcomes (completed,
-blocked, stalled, timeout, failed, skipped) so one stuck pane never blocks
-the fleet, capped answer collection, named squads, and per-run markdown
-summaries.
+Democratized subagents: any lead agent dispatches kind-agnostic consultation
+workers as real herdr panes and collects their answers. One command spawns a
+worker fleet into a scratch workspace, delivers a self-contained brief, and
+folds the worker-written answers into one summary - visible, persistent, and
+managed by herdr rather than locked inside any single AI's runtime.
 
 ```bash
-herdr plugin install peteretelej/herdr-plugins/plugins/broadcast
+herdr plugin install peteretelej/herdr-plugins/plugins/herdr-fleet
 ```
 
-Requires herdr >= 0.9.3. `run` is a shell tool (invoke the built binary from
-a shell pane); the `last` action re-prints the latest summary.
+Requires herdr >= 0.9.3. `dispatch` is a shell tool (invoke the built binary
+from a shell pane); the `status`/`last` actions re-print run state.
 
 ## Development
 
