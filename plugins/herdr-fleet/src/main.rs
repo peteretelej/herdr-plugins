@@ -98,14 +98,12 @@ struct TabCreated {
 enum Outcome {
     Completed,
     /// Needs attention: the worker settled blocked after the brief was
-    /// delivered (the pre-start equivalents surface as Failed/Skipped).
+    /// delivered. A refused brief (already blocked) surfaces as Failed.
     Blocked,
     /// No activity within 5s of submission; delivery unconfirmed.
     Stalled,
     Timeout,
     Failed,
-    /// Not started: the worker pane never became ready.
-    Skipped,
 }
 
 impl Outcome {
@@ -116,7 +114,6 @@ impl Outcome {
             Self::Stalled => "stalled",
             Self::Timeout => "timeout",
             Self::Failed => "failed",
-            Self::Skipped => "skipped",
         }
     }
 }
@@ -136,10 +133,9 @@ impl<'de> Deserialize<'de> for Outcome {
             "stalled" => Ok(Self::Stalled),
             "timeout" => Ok(Self::Timeout),
             "failed" => Ok(Self::Failed),
-            "skipped" => Ok(Self::Skipped),
             other => Err(serde::de::Error::unknown_variant(
                 other,
-                &["completed", "blocked", "stalled", "timeout", "failed", "skipped"],
+                &["completed", "blocked", "stalled", "timeout", "failed"],
             )),
         }
     }
@@ -148,9 +144,8 @@ impl<'de> Deserialize<'de> for Outcome {
 #[derive(Serialize, Clone, Deserialize)]
 struct WorkerResult {
     /// Worker agent name
-    target: String,
-    name: Option<String>,
-    agent_kind: Option<String>,
+    worker: String,
+    kind: String,
     workspace_id: String,
     status_before: String,
     outcome: Outcome,
@@ -258,34 +253,37 @@ fn dispatch(args: DispatchArgs) -> Result<()> {
     }
 
     // One thread per worker: start (waits for readiness) -> prompt -> collect.
+    let jobs: Vec<WorkerJob> = panes
+        .iter()
+        .enumerate()
+        .map(|(i, pane_id)| WorkerJob {
+            worker: worker_name(i + 1, &stamp),
+            kind: args.kind.clone(),
+            pane_id: pane_id.clone(),
+            workspace_id: workspace_id.clone(),
+            brief: brief.clone(),
+            timeout: args.timeout.to_string(),
+            lines: args.lines,
+            no_collect: args.no_collect,
+            answers: answers.clone(),
+        })
+        .collect();
     let mut results: Vec<WorkerResult> = thread::scope(|scope| {
-        let handles: Vec<_> = panes
+        let handles: Vec<_> = jobs
             .iter()
-            .enumerate()
-            .map(|(i, pane_id)| {
-                let job = WorkerJob {
-                    worker: worker_name(i + 1, &stamp),
-                    kind: args.kind.clone(),
-                    pane_id: pane_id.clone(),
-                    workspace_id: workspace_id.clone(),
-                    brief: brief.clone(),
-                    timeout: args.timeout.to_string(),
-                    lines: args.lines,
-                    no_collect: args.no_collect,
-                    answers: answers.clone(),
-                };
+            .map(|job| {
+                let job = job.clone();
                 scope.spawn(move || run_worker(&job))
             })
             .collect();
         handles
             .into_iter()
-            .zip(panes.iter())
-            .map(|(handle, pane_id)| {
+            .zip(jobs.iter())
+            .map(|(handle, job)| {
                 handle.join().unwrap_or_else(|_| WorkerResult {
-                    target: pane_id.clone(),
-                    name: None,
-                    agent_kind: None,
-                    workspace_id: workspace_id.clone(),
+                    worker: job.worker.clone(),
+                    kind: job.kind.clone(),
+                    workspace_id: job.workspace_id.clone(),
                     status_before: "unknown".into(),
                     outcome: Outcome::Failed,
                     detail: "internal error: worker thread panicked".into(),
@@ -296,7 +294,7 @@ fn dispatch(args: DispatchArgs) -> Result<()> {
             })
             .collect::<Vec<WorkerResult>>()
     });
-    results.sort_by(|a, b| a.target.cmp(&b.target));
+    results.sort_by(|a, b| a.worker.cmp(&b.worker));
 
     let record = RunRecord {
         timestamp: stamp,
@@ -430,9 +428,8 @@ fn run_worker(job: &WorkerJob) -> WorkerResult {
 
 fn base_result(worker: &str, kind: &str) -> WorkerResult {
     WorkerResult {
-        target: worker.to_string(),
-        name: Some(worker.to_string()),
-        agent_kind: Some(kind.to_string()),
+        worker: worker.to_string(),
+        kind: kind.to_string(),
         workspace_id: String::new(),
         status_before: "unstarted".into(),
         outcome: Outcome::Failed,
@@ -444,8 +441,8 @@ fn base_result(worker: &str, kind: &str) -> WorkerResult {
 }
 
 /// Worker names must be unique among live agents and match
-/// `[a-z][a-z0-9_-]{0,31}`; the stamp's millisecond digits (lowercase, fixed
-/// width) keep concurrent runs apart.
+/// `[a-z][a-z0-9_-]{0,31}`; the millisecond digits make concurrent-run
+/// name collisions unlikely and keep names deterministic.
 fn worker_name(index: usize, stamp: &str) -> String {
     let digits = stamp.trim_end_matches('Z');
     let suffix = &digits[digits.len() - 5..];
@@ -550,7 +547,7 @@ fn collect_transcript(worker: &str, lines: usize, answers: &Path) -> Result<(usi
     let text = text.trim_end();
     let file = format!("{worker}-transcript.txt");
     std::fs::write(answers.join(&file), text)?;
-    Ok((text.lines().count(), file))
+    Ok((text.lines().count(), format!("answers/{file}")))
 }
 
 fn herdr_json(args: &[&str]) -> Result<serde_json::Value> {
@@ -641,7 +638,7 @@ fn print_run_summary(record: &RunRecord, run_dir: &Path) {
     let width = record
         .results
         .iter()
-        .map(|r| r.target.len())
+        .map(|r| r.worker.len())
         .max()
         .unwrap_or(0)
         .max(1);
@@ -660,7 +657,7 @@ fn print_run_summary(record: &RunRecord, run_dir: &Path) {
             } else {
                 format!("  [{answer}]")
             },
-            t = r.target
+            t = r.worker
         );
     }
     println!("run dir: {}", run_dir.join("summary.md").display());
@@ -687,7 +684,7 @@ fn summary_md(record: &RunRecord, run_dir: &Path) -> String {
             .unwrap_or_else(|| "-".into());
         s.push_str(&format!(
             "| {} | {} | {} | {} | {} |\n",
-            md_cell(&r.target),
+            md_cell(&r.worker),
             md_cell(&r.status_before),
             r.outcome.as_str(),
             md_cell(&r.detail),
@@ -696,7 +693,7 @@ fn summary_md(record: &RunRecord, run_dir: &Path) -> String {
     }
     for r in &record.results {
         let Some(file) = &r.answer_file else { continue };
-        s.push_str(&format!("\n## {}\n\n", md_cell(&r.target)));
+        s.push_str(&format!("\n## {}\n\n", md_cell(&r.worker)));
         if let Ok(text) = std::fs::read_to_string(run_dir.join(file)) {
             s.push_str(text.trim_end());
             s.push('\n');
@@ -708,6 +705,9 @@ fn summary_md(record: &RunRecord, run_dir: &Path) -> String {
 fn resolve_run_dir(runs: &Path, run: Option<&str>) -> Result<PathBuf> {
     match run {
         Some(stamp) => {
+            if !is_run_stamp(stamp) {
+                bail!("'{}' is not a run stamp (YYYYMMDDTHHMMSSmmmZ)", stamp);
+            }
             let dir = runs.join(stamp);
             if !dir.is_dir() {
                 bail!("no run '{}' under {}", stamp, runs.display());
@@ -717,7 +717,9 @@ fn resolve_run_dir(runs: &Path, run: Option<&str>) -> Result<PathBuf> {
         None => match std::fs::read_dir(runs) {
             Ok(entries) => entries
                 .filter_map(|entry| entry.ok())
-                .filter(|entry| entry.path().is_dir())
+                // Only completed runs: a dispatch that died mid-topology
+                // leaves a bare directory behind and must not poison latest.
+                .filter(|entry| entry.path().join("summary.md").is_file())
                 .map(|entry| entry.file_name().to_string_lossy().to_string())
                 .max()
                 .map(|stamp| runs.join(stamp))
@@ -730,6 +732,17 @@ fn resolve_run_dir(runs: &Path, run: Option<&str>) -> Result<PathBuf> {
     }
 }
 
+/// Strict shape check for run-directory stamps (fixed width, generated by
+/// run_stamp); also blocks path tricks through --run.
+fn is_run_stamp(s: &str) -> bool {
+    s.len() == 19
+        && s.as_bytes()[8] == b'T'
+        && s.as_bytes()[18] == b'Z'
+        && s.chars()
+            .enumerate()
+            .all(|(i, c)| i == 8 || i == 18 || c.is_ascii_digit())
+}
+
 fn status(run: Option<&str>, state_dir: Option<&Path>) -> Result<()> {
     let run_dir = resolve_run_dir(&state_root(state_dir)?.join("runs"), run)?;
     let record_path = run_dir.join("status.jsonl");
@@ -740,7 +753,7 @@ fn status(run: Option<&str>, state_dir: Option<&Path>) -> Result<()> {
         let Ok(r) = serde_json::from_str::<WorkerResult>(line) else {
             continue;
         };
-        let result_file = run_dir.join(format!("answers/{}.md", r.target));
+        let result_file = run_dir.join(format!("answers/{}.md", r.worker));
         let result_state = if result_file.is_file() {
             "result file present"
         } else if r.answer_file.is_some() {
@@ -750,7 +763,7 @@ fn status(run: Option<&str>, state_dir: Option<&Path>) -> Result<()> {
         };
         println!(
             "  {:<20} {:<9} {:<12} {}",
-            r.target,
+            r.worker,
             r.outcome.as_str(),
             result_state,
             r.detail

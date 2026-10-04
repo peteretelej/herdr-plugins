@@ -46,7 +46,7 @@ Flags: `--kind` (default `opencode`), `--count` (default 3, max 8), `--cwd`,
 tail, default 200), `--no-collect`, `--json`, `--state-dir`.
 
 Per-worker outcomes: `completed` / `blocked` / `stalled` / `timeout` /
-`failed` / `skipped` - same taxonomy and guarantees as the run record: a
+`failed` - the same taxonomy and guarantees as the run record: a
 stalled or timed-out brief is never auto-retried (herdr does not guarantee
 non-delivery, so a retry could send it twice), and the exit code is 0 only
 when at least one worker received the brief.
