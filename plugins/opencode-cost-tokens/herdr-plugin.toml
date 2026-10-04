@@ -1,0 +1,34 @@
+id = "peteretelej.opencode-cost-tokens"
+name = "OpenCode Cost Tokens"
+version = "0.1.1"
+min_herdr_version = "0.9.3"
+description = "Minimal live OpenCode telemetry per agent pane: context %, tok/s, and session cost when it exists."
+platforms = ["linux", "macos"]
+
+[[build]]
+command = ["cargo", "build", "--release"]
+
+# Hooks reconcile the pane named in the event; a detached watcher keeps
+# working panes live between events. Paths are relative to the plugin dir;
+# cargo emits to the workspace root target/, two levels up.
+[[startup]]
+command = ["../../target/release/opencode-cost-tokens", "refresh"]
+
+[[events]]
+on = "pane.agent_status_changed"
+command = ["../../target/release/opencode-cost-tokens", "event"]
+
+[[events]]
+on = "pane.agent_detected"
+command = ["../../target/release/opencode-cost-tokens", "event"]
+
+# Manual trigger, e.g. `herdr plugin action invoke peteretelej.opencode-cost-tokens.refresh`
+[[actions]]
+id = "refresh"
+title = "Refresh OpenCode cost tokens now"
+command = ["../../target/release/opencode-cost-tokens", "refresh"]
+
+[[actions]]
+id = "stop"
+title = "Stop the live watcher"
+command = ["../../target/release/opencode-cost-tokens", "stop"]
