@@ -5,8 +5,9 @@ use std::collections::{BTreeMap, HashSet};
 use std::path::PathBuf;
 use std::process::Command;
 
-/// Name herdr tabs (and optionally panes) after a short project-feature slug
-/// derived from the OpenCode session topic.
+/// Name herdr tabs (and optionally panes) after a short topic slug derived
+/// from the OpenCode session topic. The workspace/project slot stays available
+/// as an opt-in `{project}` template token.
 #[derive(Parser)]
 #[command(name = "agent-tab-name", version)]
 struct Cli {
@@ -43,7 +44,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             rename_panes: false,
-            tab_format: "{project}-{topic}".into(),
+            tab_format: "{topic}".into(),
             max_len: 28,
             strip_prefixes: vec![],
             max_topic_words: 3,

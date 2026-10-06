@@ -1,8 +1,8 @@
 id = "peteretelej.agent-tab-name"
 name = "Agent Tab Name"
-version = "0.1.0"
+version = "0.1.1"
 min_herdr_version = "0.9.3"
-description = "Name tabs and panes after a short project-feature slug from the OpenCode session topic. Manual names are respected."
+description = "Name tabs and panes after a short slug of the agent's session topic. Manual names are respected."
 platforms = ["linux", "macos"]
 
 [[build]]

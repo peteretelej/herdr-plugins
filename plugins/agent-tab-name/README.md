@@ -1,21 +1,24 @@
 # peteretelej.agent-tab-name
 
-Names herdr tabs (and optionally panes) after a short **project-feature slug**
-built from the running agent's session topic - e.g. `shop-fix-checkout-redirect`
-instead of `7. Fix checkout redirect loop`. Manual names are respected; writes
-are state-gated so labels only change when the topic actually changed.
+Names herdr tabs (and optionally panes) after a short **topic slug** built
+from the running agent's session topic - e.g. `fix-checkout-redirect` instead
+of `7. Fix checkout redirect loop`. Manual names are respected; writes are
+state-gated so labels only change when the topic actually changed.
 
 ## Before / after
 
 | Tab before | Tab after |
 |---|---|
-| `1` | `webshop-fix-checkout-redirect` |
-| `2` | `api-review-auth-middleware` |
-| `3` | `docs-add-csv-export` |
+| `1` | `fix-checkout-redirect` |
+| `2` | `review-auth-middleware` |
+| `3` | `add-csv-export` |
 
-The project part is the herdr workspace label (or a short form you configure);
-the feature part is the slugified session topic, capped to a few words so it
-fits herdr's narrow tab strip.
+The topic part is the slugified session topic, capped to a few words so it
+fits herdr's narrow tab strip. Tabs are grouped by workspace and herdr's
+agents list already shows the workspace next to each label, so the project
+prefix is off by default; to prepend it anyway, set
+`tab_format = "{project}-{topic}"` (the `{project}` slot is the workspace
+label, or a short form via `project_slugs`).
 
 Part of [peteretelej/herdr-plugins](https://github.com/peteretelej/herdr-plugins).
 
@@ -52,7 +55,8 @@ Optional TOML at `$(herdr plugin config-dir peteretelej.agent-tab-name)/config.t
 # Rename panes as well as tabs (default: tabs only)
 rename_panes = false
 # Label template. Tokens: {project} {topic} {agent} {n}
-tab_format = "{project}-{topic}"
+# Default is topic-only; "{project}-{topic}" prepends the workspace label.
+tab_format = "{topic}"
 # Truncate labels to this many characters (herdr tab strips are narrow)
 max_len = 28
 # Topic prefixes to strip (e.g. OpenCode's "OC | ")
@@ -64,7 +68,9 @@ project_slugs = { "webshop" = "shop" }
 ```
 
 Example: session "Fix checkout redirect loop" in the `webshop` workspace
-produces `shop-fix-checkout-redirect`.
+produces `fix-checkout-redirect`; with `tab_format = "{project}-{topic}"` and
+`project_slugs = { "webshop" = "shop" }` it becomes
+`shop-fix-checkout-redirect`.
 
 Manual renames are always respected: a label is adopted only if it is unset, a
 value this plugin wrote earlier, or exactly what the plugin would write now.
