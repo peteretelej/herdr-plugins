@@ -3,6 +3,12 @@
 Open-source suite of [herdr](https://github.com/herdrdev/herdr) plugins - one
 directory per plugin under `plugins/`, installable individually.
 
+An example of some of the plugins in action (agent-tab-name & opencode-cost-tokens) to show custom tab names, context usage and tokens per second.
+
+<img width="340" height="165" alt="image" src="https://github.com/user-attachments/assets/0187ba40-5bae-47c7-b76e-0c6dd9f709db" />
+
+
+
 ## Plugins
 
 ### [agent-tab-name](plugins/agent-tab-name/)
